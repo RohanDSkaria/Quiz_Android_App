@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Quiz Time',
+              'Quiz Time!',
               style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             SizedBox(height: 20),

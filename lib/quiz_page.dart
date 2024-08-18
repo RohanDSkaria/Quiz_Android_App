@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'result_page.dart';
 
 class QuizPage extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
   bool isLoading = true;
   String errorMessage = '';
   int currentQuestionIndex = 0;
+  int _score = 0;
   String? selectedOption;
   bool showResult = false;
   bool isCorrect = false;
@@ -58,19 +60,25 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
   }
 
   void handleSubmit() {
-  if (selectedOption != null && !showResult) {
-    setState(() {
-      int correctAnswerIndex = questions[currentQuestionIndex]['correctAnswerIndex'] ?? -1;
-      int selectedIndex = (questions[currentQuestionIndex]['options'] as List).indexOf(selectedOption!);
-      isCorrect = selectedIndex == correctAnswerIndex;
-      showResult = true;
+    if (selectedOption != null && !showResult) {
+      setState(() {
+        int correctAnswerIndex = questions[currentQuestionIndex]['correctAnswerIndex'] ?? -1;
+        int selectedIndex = (questions[currentQuestionIndex]['options'] as List).indexOf(selectedOption!);
+        isCorrect = selectedIndex == correctAnswerIndex;
+        showResult = true;
 
-      // Start rotation animation for selected option
-      _controller.reset();
-      _controller.forward();
-    });
+        // Increment the score if the answer is correct
+        if (isCorrect) {
+          _score++;
+        }
+
+        // Start rotation animation for selected option
+        _controller.reset();
+        _controller.forward();
+      });
+    }
   }
-}
+
 
   void nextQuestion() {
     setState(() {
@@ -79,9 +87,22 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
       isCorrect = false;
       if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
+      } else {
+        // Navigate to ResultPage when quiz ends
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ResultPage(
+              score: _score, // Assuming you have a variable to track score
+              totalQuestions: questions.length,
+            ),
+          ),
+        );
       }
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +169,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
                                             animation: _controller,
                                             builder: (context, child) {
                                               double rotationAngle = isSelected
-                                                  ? (isCorrect ? _controller.value * 6.2832 : _controller.value * 12.5664) // 360 or 720 degrees
+                                                  ? (isCorrect ? _controller.value * 12.5664 : _controller.value * 6.2832) // 360 or 720 degrees
                                                   : 0.0;
 
                                               return Transform(
@@ -221,7 +242,7 @@ class _QuizPageState extends State<QuizPage> with SingleTickerProviderStateMixin
                                     Column(
                                       children: [
                                         Text(
-                                          isCorrect ? 'Correct! Good job!' : 'Incorrect. The correct answer was ${questions[currentQuestionIndex]['correctAnswer']}.',
+                                          isCorrect ? 'Correct! Good job!' : 'Incorrect.',
                                           style: TextStyle(
                                             color: isCorrect ? Colors.green : Colors.red,
                                             fontSize: 16,
